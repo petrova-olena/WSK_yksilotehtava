@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurants</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="scripts/app.js" defer></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <img class="logo" src="assets/images/sitelogo.jpg" alt="Logo" />
+
+        <div class="header-right">
+          <button type="button" class="search-btn">Search restaurant</button>
+          <button
+            class="profile-btn"
+            onclick="window.location.href = 'profile.html'"
+          >
+            Profile
+          </button>
+          <button id="login-btn" class="login-btn">Login</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section id="map-container">
+        <div id="map"></div>
+      </section>
+
+      <section id="list-container">
+        <div id="restaurant-list">
+          <!--This will be deleted, when implements API-->
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+          <div class="restaurant-card">
+            <h3>UniCafe Kaivopiha</h3>
+            <p>Mannerheimintie 3, Helsinki</p>
+          </div>
+        </div>
+
+        <div id="pagination">
+          <button id="prev-page">← Prev</button>
+          <span id="page-info"></span>
+          <button id="next-page">Next →</button>
+        </div>
+      </section>
+    </main>
+
+    <!--Modal window for the restaurants information-->
+    <div id="restaurant-modal" class="hidden">
+      <div class="modal-content restaurant-modal">
+        <button class="close-restaurant">x</button>
+
+        <h2 id="restaurant-name">Restaurant Name</h2>
+
+        <p id="restaurant-address"></p>
+        <p id="restaurant-phone"></p>
+        <p id="restaurant-company"></p>
+
+        <div class="restaurant-buttons">
+          <button class="menu-day">Menu for Today</button>
+          <button class="menu-week">Menu for Week</button>
+        </div>
+      </div>
+    </div>
+
+    <!--Modal window for the restaurants searching-->
+    <div id="filter-modal" class="hidden">
+      <div class="modal-content filter-modal">
+        <button class="close-modal">x</button>
+
+        <h2>Search Filters</h2>
+
+        <label for="filter-address">Address</label>
+        <input type="text" id="filter-address" placeholder="Enter address" />
+
+        <div class="radio-group">
+          <input type="radio" id="use-location" name="location-option" />
+          <label for="use-location">Use my location</label>
+        </div>
+
+        <label for="filter-keyword">Keyword</label>
+        <input type="text" id="filter-keyword" placeholder="e.g. pasta, soup" />
+
+        <label>Diet</label>
+        <div class="diet-options">
+          <label><input type="checkbox" /> Vegetarian</label>
+          <label><input type="checkbox" /> Vegan</label>
+          <label><input type="checkbox" /> Gluten-free</label>
+          <label><input type="checkbox" /> Lactose-free</label>
+        </div>
+
+        <div class="filter-buttons">
+          <button class="apply-btn">Apply</button>
+          <button class="clear-btn">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!--Modal window for the login/registration-->
+    <div id="login-modal" class="hidden">
+      <div class="modal-content login-modal">
+        <button class="close-login">x</button>
+
+        <h2>Login</h2>
+
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" />
+
+        <label for="login-password">Password</label>
+        <input
+          type="password"
+          id="login-password"
+          placeholder="Enter password"
+        />
+
+        <button class="login-submit">Login</button>
+
+        <p class="create-account">
+          Don't have an account?
+          <a href="#">Create one</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

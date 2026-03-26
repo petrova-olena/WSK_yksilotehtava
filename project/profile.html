@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurants_profile</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <img class="logo" src="assets/images/sitelogo.jpg" alt="Logo" />
+
+        <div class="header-right">
+          <button
+            class="home-btn"
+            onclick="window.location.href = 'index.html'"
+          >
+            Home
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="profile-layout">
+      <section class="profile-card">
+        <div class="profile-left">
+          <img id="profile-photo" src="assets/images/avatar.jpg" alt="Avatar" />
+          <button class="upload-photo-btn">Upload foto</button>
+        </div>
+
+        <div class="profile-right">
+          <h2>User's profile</h2>
+
+          <div class="profile-field">
+            <label>First Name</label>
+            <span id="first-name">—</span>
+          </div>
+
+          <div class="profile-field">
+            <label>Last Name</label>
+            <span id="last-name">—</span>
+          </div>
+
+          <div class="profile-field">
+            <label>Email</label>
+            <span id="email">—</span>
+          </div>
+
+          <div class="profile-field">
+            <label>Favorite restaurants</label>
+            <ul id="favorites-list" class="favorites-list"></ul>
+            <p id="favorites-empty" class="empty-text">
+              The list is empty for now
+            </p>
+          </div>
+
+          <button class="edit-profile-btn">Edit profile</button>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
