@@ -116,6 +116,10 @@ export function initLoginModal() {
 
       const result = await loginUser(username, password);
 
+      console.log('LOGIN RESULT:', result);
+      console.log('TOKEN:', result.token);
+      console.log('USER DATA:', result.data);
+
       if (result.token) {
         // Save token
         localStorage.setItem('token', result.token);

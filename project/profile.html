@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurants_profile</title>
     <link rel="stylesheet" href="style.css" />
-    <script type="module" src="profile.js" defer></script>
+    <script type="module" src="scripts/profile.js" defer></script>
   </head>
   <body>
     <header>
@@ -27,6 +27,7 @@
       <section class="profile-card">
         <div class="profile-left">
           <img id="profile-photo" src="assets/images/avatar.jpg" alt="Avatar" />
+          <button class="upload-photo-btn">Upload photo</button>
           <input
             type="file"
             id="avatar-input"
@@ -39,13 +40,8 @@
           <h2>User's profile</h2>
 
           <div class="profile-field">
-            <label>First Name</label>
-            <span id="first-name">—</span>
-          </div>
-
-          <div class="profile-field">
-            <label>Last Name</label>
-            <span id="last-name">—</span>
+            <label>Username</label>
+            <span id="username">—</span>
           </div>
 
           <div class="profile-field">
@@ -61,28 +57,30 @@
             </p>
           </div>
 
-          <button class="edit-profile-btn">Edit profile</button>
-          <button class="delete-profile-btn">Delete account</button>
+          <div class="profile-buttons">
+            <button class="edit-profile-btn">Edit profile</button>
+            <button class="delete-profile-btn">Delete account</button>
+          </div>
         </div>
       </section>
     </main>
 
     <div id="edit-modal" class="modal hidden">
-      <div class="modal-content edit-modal">
-        <button class="close-edit">x</button>
+      <div class="login-modal edit-modal-window">
+        <button class="close-login">x</button>
 
         <h2>Edit Profile</h2>
 
-        <label>Email</label>
-        <input id="edit-email" type="email" />
-
-        <label>Username</label>
+        <label for="edit-username">Username</label>
         <input id="edit-username" type="text" />
 
-        <label>New Password</label>
+        <label for="edit-email">Email</label>
+        <input id="edit-email" type="email" />
+
+        <label for="edit-password">New Password</label>
         <input id="edit-password" type="password" />
 
-        <button id="save-profile">Save changes</button>
+        <button id="save-profile" class="login-submit">Save changes</button>
       </div>
     </div>
   </body>

@@ -1,5 +1,7 @@
 'use strict';
 
+const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
+
 /* ---------------------------------------------------
    1. API FUNCTIONS
 --------------------------------------------------- */
@@ -73,8 +75,7 @@ if (!token || !user) {
    3. DOM ELEMENTS
 --------------------------------------------------- */
 
-const firstNameEl = document.getElementById('first-name');
-const lastNameEl = document.getElementById('last-name');
+const userNameEl = document.getElementById('username');
 const emailEl = document.getElementById('email');
 const profilePhotoEl = document.getElementById('profile-photo');
 const favoritesListEl = document.getElementById('favorites-list');
@@ -82,21 +83,25 @@ const favoritesEmptyEl = document.getElementById('favorites-empty');
 
 const editBtn = document.querySelector('.edit-profile-btn');
 const editModal = document.getElementById('edit-modal');
+const closeEditBtn = editModal.querySelector('.close-login');
 const deleteBtn = document.querySelector('.delete-profile-btn');
 const uploadBtn = document.querySelector('.upload-photo-btn');
 const avatarInput = document.getElementById('avatar-input');
+
+console.log('TOKEN FROM LS:', token);
+console.log('USER FROM LS:', user);
+console.log('editBtn:', editBtn);
+console.log('editModal:', editModal);
 
 /* ---------------------------------------------------
    4. INITIAL PROFILE FILL
 --------------------------------------------------- */
 
 emailEl.textContent = user.email || '—';
-firstNameEl.textContent = user.firstName || '—';
-lastNameEl.textContent = user.lastName || '—';
-
-if (user.avatar) {
-  profilePhotoEl.src = apiUrl + '/uploads/' + user.avatar;
-}
+userNameEl.textContent = user.username || '—';
+profilePhotoEl.src = user.avatar
+  ? `https://media2.edu.metropolia.fi/restaurant/uploads/${user.avatar}`
+  : 'assets/images/avatar.jpg';
 
 if (user.favouriteRestaurant) {
   favoritesEmptyEl.style.display = 'none';
@@ -110,14 +115,20 @@ if (user.favouriteRestaurant) {
 --------------------------------------------------- */
 
 editBtn.addEventListener('click', () => {
-  document.getElementById('edit-email').value = user.email || '';
   document.getElementById('edit-username').value = user.username || '';
+  document.getElementById('edit-email').value = user.email || '';
   document.getElementById('edit-password').value = '';
   editModal.classList.remove('hidden');
 });
 
-document.querySelector('.close-edit').addEventListener('click', () => {
+closeEditBtn.addEventListener('click', () => {
   editModal.classList.add('hidden');
+});
+
+editModal.addEventListener('click', (e) => {
+  if (e.target === editModal) {
+    editModal.classList.add('hidden');
+  }
 });
 
 /* ---------------------------------------------------
@@ -126,25 +137,24 @@ document.querySelector('.close-edit').addEventListener('click', () => {
 
 document.getElementById('save-profile').addEventListener('click', async () => {
   const updatedData = {
-    email: document.getElementById('edit-email').value.trim(),
     username: document.getElementById('edit-username').value.trim(),
+    email: document.getElementById('edit-email').value.trim(),
   };
 
   const newPassword = document.getElementById('edit-password').value.trim();
   if (newPassword) updatedData.password = newPassword;
+
+  console.log('Sending to API:', updatedData);
 
   const result = await updateUser(updatedData, token);
 
   if (result.data) {
     alert('Profile updated successfully');
 
-    // Update localStorage
     localStorage.setItem('user', JSON.stringify(result.data));
 
-    // Update UI
-    emailEl.textContent = result.data.email;
-    firstNameEl.textContent = result.data.firstName || '—';
-    lastNameEl.textContent = result.data.lastName || '—';
+    document.getElementById('username').textContent = result.data.username;
+    document.getElementById('email').textContent = result.data.email;
 
     editModal.classList.add('hidden');
   } else {
@@ -189,6 +199,7 @@ avatarInput.addEventListener('change', async () => {
   if (!file) return;
 
   const result = await uploadAvatar(file, token);
+  console.log('Updated user:', result.data);
 
   if (result.data) {
     alert('Avatar updated successfully');
