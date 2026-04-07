@@ -52,20 +52,13 @@ function filterRestaurants(restaurants, filters) {
   let results = [...restaurants];
 
   const addr = filters.address.trim().toLowerCase();
-  const key = filters.keyword.trim().toLowerCase();
-
-  if (key) {
-    results = results.filter(
-      (r) =>
-        r._id.toLowerCase().includes(key) || r.name.toLowerCase().includes(key)
-    );
-  }
 
   if (addr) {
     results = results.filter(
       (r) =>
         r.address.toLowerCase().includes(addr) ||
-        r.city.toLowerCase().includes(addr)
+        r.city.toLowerCase().includes(addr) ||
+        r.name.toLowerCase().includes(addr)
     );
   }
 
@@ -147,11 +140,14 @@ async function filterByMenu(restaurants, keyword, diets) {
     if (allCourses.length === 0) continue;
 
     const keywordMatch = key
-      ? allCourses.some(
-          (c) =>
-            c.name?.toLowerCase().includes(key) ||
-            c.price?.toLowerCase().includes(key)
-        )
+      ? allCourses.some((course) => {
+          const name = course.name?.toLowerCase() || '';
+          const desc = course.description?.toLowerCase() || '';
+          const price = course.price?.toLowerCase() || '';
+          return (
+            name.includes(key) || desc.includes(key) || price.includes(key)
+          );
+        })
       : true;
 
     const dietMatch = dietList.length
