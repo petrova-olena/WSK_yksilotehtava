@@ -754,6 +754,13 @@ header {
   max-width: 90%;
 }
 
+/* =========================
+      User's marker color 
+   ========================= */
+.user-marker {
+  filter: hue-rotate(150deg) brightness(90%);
+}
+
 /* =================================
         Desktop 1200px and above
    ================================= */

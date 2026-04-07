@@ -7,8 +7,10 @@ import {
   renderMenu,
   renderWeeklyMenu,
 } from './modal.js';
+import {map} from './app.js';
 
 const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
+const markers = new Map(); // id → marker
 
 // Fetch all restaurants
 const getRestaurants = async () => {
@@ -37,17 +39,81 @@ const getWeeklyMenu = async (id, lang) => {
   }
 };
 
-// Function to render restaurant cards for the pagination
+// Function to open restaurant modal with details and menu
+async function openRestaurantModal(restaurant) {
+  const modalWrapper = document.getElementById('restaurant-modal');
+  const modalContent = document.querySelector('.restaurant-modal');
+
+  modalContent.innerHTML = '';
+
+  // Close button
+  const closeBtn = document.createElement('button');
+  closeBtn.classList.add('close-restaurant');
+  closeBtn.textContent = 'X';
+  closeBtn.addEventListener('click', () => {
+    modalWrapper.classList.add('hidden');
+  });
+  modalContent.appendChild(closeBtn);
+
+  // Header + info
+  modalContent.appendChild(renderHeader(restaurant));
+  modalContent.appendChild(renderInfo(restaurant));
+
+  // Buttons container
+  const btnContainer = document.createElement('div');
+  btnContainer.classList.add('restaurant-buttons');
+
+  const dailyBtn = document.createElement('button');
+  dailyBtn.classList.add('menu-day');
+  dailyBtn.textContent = 'Menu for Today';
+
+  const weeklyBtn = document.createElement('button');
+  weeklyBtn.classList.add('menu-week');
+  weeklyBtn.textContent = 'Menu for Week';
+
+  btnContainer.appendChild(dailyBtn);
+  btnContainer.appendChild(weeklyBtn);
+  modalContent.appendChild(btnContainer);
+
+  // Menu container
+  const menuContainer = document.createElement('div');
+  menuContainer.classList.add('menu-output');
+  modalContent.appendChild(menuContainer);
+
+  // Daily menu
+  dailyBtn.addEventListener('click', async () => {
+    const dailyMenu = await getDailyMenu(restaurant._id, 'en');
+    menuContainer.innerHTML = '';
+
+    if (!dailyMenu || !dailyMenu.courses || dailyMenu.courses.length === 0) {
+      menuContainer.textContent = 'No menu available today.';
+      return;
+    }
+
+    menuContainer.appendChild(renderMenu(dailyMenu));
+  });
+
+  // Weekly menu
+  weeklyBtn.addEventListener('click', async () => {
+    const weeklyMenu = await getWeeklyMenu(restaurant._id, 'en');
+    menuContainer.innerHTML = '';
+    menuContainer.appendChild(renderWeeklyMenu(weeklyMenu));
+  });
+
+  modalWrapper.classList.remove('hidden');
+}
+
+// Function to render restaurant cards (only cards, without markers)
 function renderCards(items) {
   const container = document.querySelector('#restaurant-list');
   container.innerHTML = '';
 
   const restaurantModal = document.getElementById('restaurant-modal');
-  const closeRestaurant = document.querySelector('.close-restaurant');
 
   items.forEach((restaurant) => {
     const rDiv = document.createElement('div');
     rDiv.classList.add('restaurant-card');
+    rDiv.dataset.id = restaurant._id;
 
     const rName = document.createElement('h3');
     rName.textContent = restaurant.name;
@@ -58,73 +124,10 @@ function renderCards(items) {
     rDiv.appendChild(rName);
     rDiv.appendChild(rAddress);
 
-    rDiv.addEventListener('click', async () => {
-      const modalWrapper = document.getElementById('restaurant-modal');
-      const modalContent = document.querySelector('.restaurant-modal');
-
-      // Clear previous content
-      modalContent.innerHTML = '';
-
-      // Close button (always on top right)
-      const closeBtn = document.createElement('button');
-      closeBtn.classList.add('close-restaurant');
-      closeBtn.textContent = 'X';
-      closeBtn.addEventListener('click', () => {
-        modalWrapper.classList.add('hidden');
-      });
-      modalContent.appendChild(closeBtn);
-
-      // Header + info
-      modalContent.appendChild(renderHeader(restaurant));
-      modalContent.appendChild(renderInfo(restaurant));
-
-      // Container for buttons
-      const btnContainer = document.createElement('div');
-      btnContainer.classList.add('restaurant-buttons');
-
-      const dailyBtn = document.createElement('button');
-      dailyBtn.classList.add('menu-day');
-      dailyBtn.textContent = 'Menu for Today';
-
-      const weeklyBtn = document.createElement('button');
-      weeklyBtn.classList.add('menu-week');
-      weeklyBtn.textContent = 'Menu for Week';
-
-      btnContainer.appendChild(dailyBtn);
-      btnContainer.appendChild(weeklyBtn);
-      modalContent.appendChild(btnContainer);
-
-      // Menu container
-      const menuContainer = document.createElement('div');
-      menuContainer.classList.add('menu-output');
-      modalContent.appendChild(menuContainer);
-
-      // Daily menu
-      dailyBtn.addEventListener('click', async () => {
-        const dailyMenu = await getDailyMenu(restaurant._id, 'en');
-        menuContainer.innerHTML = '';
-
-        if (
-          !dailyMenu ||
-          !dailyMenu.courses ||
-          dailyMenu.courses.length === 0
-        ) {
-          menuContainer.textContent = 'No menu available today.';
-          return;
-        }
-
-        menuContainer.appendChild(renderMenu(dailyMenu));
-      });
-
-      // Weekly menu
-      weeklyBtn.addEventListener('click', async () => {
-        const weeklyMenu = await getWeeklyMenu(restaurant._id, 'en');
-        menuContainer.innerHTML = '';
-        menuContainer.appendChild(renderWeeklyMenu(weeklyMenu));
-      });
-
-      // Show modal after content is ready
-      modalWrapper.classList.remove('hidden');
+    // Click on card = open modal
+    rDiv.addEventListener('click', () => {
+      openRestaurantModal(restaurant);
+      highlightCard(restaurant._id);
     });
 
     container.appendChild(rDiv);
@@ -137,26 +140,49 @@ function renderCards(items) {
   });
 }
 
-// Adaptive card count based on screen width
-function getCardsPerPage() {
-  const w = window.innerWidth;
-
-  if (w >= 1200) return 9; // Desktop
-  if (w >= 768) return 6; // Tablet landscape
-  if (w >= 600) return 4; // Tablet portrait
-  return 2; // Mobile
+// Function to highlight a restaurant card
+function highlightCard(id) {
+  document.querySelectorAll('.restaurant-card').forEach((card) => {
+    card.classList.toggle('active', card.dataset.id === id);
+  });
 }
 
-// Main function to show restaurants with pagination
+// Function to show restaurants (main function)
 const showRestaurants = async () => {
   const restaurants = await getRestaurants();
 
   restaurants.sort((a, b) => a.name.localeCompare(b.name));
 
-  // Start pagination with the fetched restaurants and rendering function
+  // Create markers for all restaurants
+  restaurants.forEach((r) => {
+    const marker = L.marker([
+      r.location.coordinates[1],
+      r.location.coordinates[0],
+    ]).addTo(map);
+
+    markers.set(r._id, marker);
+
+    // Click on marker = open modal + highlight card
+    marker.on('click', () => {
+      openRestaurantModal(r);
+      highlightCard(r._id);
+    });
+  });
+
+  // Function to initialize pagination (only cards)
   new Pagination(restaurants, renderCards, {
     getPerPage: getCardsPerPage,
   });
 };
 
 export default showRestaurants;
+
+// Adaptive card count based on screen width
+function getCardsPerPage() {
+  const w = window.innerWidth;
+
+  if (w >= 1200) return 9;
+  if (w >= 768) return 6;
+  if (w >= 600) return 4;
+  return 2;
+}
