@@ -7,10 +7,12 @@ import {
   renderMenu,
   renderWeeklyMenu,
 } from './modal.js';
-import {map} from './app.js';
+import {map} from './map.js';
+import {clearFilterForm, filterRestaurants} from './filter.js';
 
 const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
 const markers = new Map(); // id → marker
+let restaurants = [];
 
 // Fetch all restaurants
 const getRestaurants = async () => {
@@ -147,14 +149,11 @@ function highlightCard(id) {
   });
 }
 
-// Function to show restaurants (main function)
-const showRestaurants = async () => {
-  const restaurants = await getRestaurants();
+// Create markers once for the given restaurant items
+function createMarkers(items) {
+  items.forEach((r) => {
+    if (markers.has(r._id)) return;
 
-  restaurants.sort((a, b) => a.name.localeCompare(b.name));
-
-  // Create markers for all restaurants
-  restaurants.forEach((r) => {
     const marker = L.marker([
       r.location.coordinates[1],
       r.location.coordinates[0],
@@ -162,16 +161,64 @@ const showRestaurants = async () => {
 
     markers.set(r._id, marker);
 
-    // Click on marker = open modal + highlight card
     marker.on('click', () => {
       openRestaurantModal(r);
       highlightCard(r._id);
     });
   });
+}
 
-  // Function to initialize pagination (only cards)
+// Function to show restaurants (main function)
+const showRestaurants = async () => {
+  restaurants = await getRestaurants();
+
+  // Sort restaurants alphabetically by name
+  restaurants.sort((a, b) => a.name.localeCompare(b.name));
+
+  // Create markers for all restaurants (only once)
+  createMarkers(restaurants);
+
+  // Start with showing all restaurants in the cards
   new Pagination(restaurants, renderCards, {
     getPerPage: getCardsPerPage,
+  });
+
+  const applyBtn = document.querySelector('.apply-btn');
+  const clearBtn = document.querySelector('.clear-btn');
+  const filterModal = document.getElementById('filter-modal');
+
+  applyBtn.addEventListener('click', () => {
+    const filters = {
+      address: document.getElementById('filter-address').value,
+      keyword: document.getElementById('filter-keyword').value,
+      diets: [...document.querySelectorAll('.diet-options input:checked')].map(
+        (cb) => cb.parentElement.textContent.trim().toLowerCase()
+      ),
+      useLocation: document.getElementById('use-location').checked,
+      userLocation: window.userLocation || null,
+    };
+
+    const filtered = filterRestaurants(restaurants, filters);
+
+    // Only cards, markers NOT touched
+    new Pagination(filtered, renderCards, {
+      getPerPage: getCardsPerPage,
+    });
+
+    // Clear filters for next time
+    clearFilterForm();
+
+    // Close filter modal
+    filterModal.classList.add('hidden');
+  });
+
+  clearBtn.addEventListener('click', () => {
+    // Clear filters and show all restaurants again
+    clearFilterForm();
+
+    new Pagination(restaurants, renderCards, {
+      getPerPage: getCardsPerPage,
+    });
   });
 };
 
