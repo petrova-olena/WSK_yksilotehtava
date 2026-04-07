@@ -143,6 +143,25 @@ header {
   overflow: hidden;
 }
 
+.restaurant-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: gold;
+  transition: transform 0.2s ease;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2);
+}
+
 #restaurant-list {
   flex: 1;
   overflow-y: auto;

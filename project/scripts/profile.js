@@ -1,5 +1,7 @@
 'use strict';
 
+import {getRestaurants} from './restaurant_cards.js';
+
 const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
 
 /* ---------------------------------------------------
@@ -103,12 +105,36 @@ profilePhotoEl.src = user.avatar
   ? `https://media2.edu.metropolia.fi/restaurant/uploads/${user.avatar}`
   : 'assets/images/avatar.jpg';
 
-if (user.favouriteRestaurant) {
+async function fillFavoriteRestaurant() {
+  if (!user.favouriteRestaurant) {
+    favoritesEmptyEl.style.display = 'block';
+    return;
+  }
+
   favoritesEmptyEl.style.display = 'none';
-  const li = document.createElement('li');
-  li.textContent = user.favouriteRestaurant;
-  favoritesListEl.appendChild(li);
+
+  // Загружаем рестораны
+  const restaurants = await getRestaurants();
+
+  // Ищем ресторан по ID
+  const fav = restaurants.find((r) => r._id === user.favouriteRestaurant);
+
+  // Выводим название
+  const favEl = document.getElementById('favorite-restaurant');
+  favEl.textContent = fav ? fav.name : 'Unknown restaurant';
 }
+fillFavoriteRestaurant();
+async function initProfile() {
+  emailEl.textContent = user.email || '—';
+  userNameEl.textContent = user.username || '—';
+  profilePhotoEl.src = user.avatar
+    ? `https://media2.edu.metropolia.fi/restaurant/uploads/${user.avatar}`
+    : 'assets/images/avatar.jpg';
+
+  await fillFavoriteRestaurant();
+}
+
+initProfile();
 
 /* ---------------------------------------------------
    5. EDIT PROFILE MODAL

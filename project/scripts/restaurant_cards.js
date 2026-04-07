@@ -9,13 +9,15 @@ import {
 } from './modal.js';
 import {map} from './map.js';
 import {clearFilterForm, applyFilters} from './filter.js';
+import {getFavoriteRestaurant, setFavoriteRestaurant} from './favorite.js';
 
 const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
 const markers = new Map(); // id → marker
 let restaurants = [];
+let currentFavorite = getFavoriteRestaurant();
 
 // Fetch all restaurants
-const getRestaurants = async () => {
+export const getRestaurants = async () => {
   try {
     return await fetchData(apiUrl + '/restaurants');
   } catch (error) {
@@ -119,8 +121,36 @@ function renderCards(items) {
     rDiv.classList.add('restaurant-card');
     rDiv.dataset.id = restaurant._id;
 
+    const headerRow = document.createElement('div');
+    headerRow.classList.add('restaurant-header-row');
+
     const rName = document.createElement('h3');
     rName.textContent = restaurant.name;
+
+    const favBtn = document.createElement('button');
+    favBtn.classList.add('favorite-btn');
+
+    const updateStar = () => {
+      favBtn.textContent = restaurant._id === currentFavorite ? '★' : '☆';
+    };
+
+    updateStar();
+
+    favBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+
+      currentFavorite = restaurant._id;
+      await setFavoriteRestaurant(currentFavorite);
+
+      document
+        .querySelectorAll('.favorite-btn')
+        .forEach((btn) => (btn.textContent = '☆'));
+      updateStar();
+    });
+
+    headerRow.appendChild(rName);
+    headerRow.appendChild(favBtn);
+    rDiv.appendChild(headerRow);
 
     const rAddress = document.createElement('p');
     rAddress.textContent = `${restaurant.address}, ${restaurant.city}`;
@@ -210,7 +240,7 @@ const showRestaurants = async () => {
 
         const filtered = await applyFilters(restaurants, filters);
 
-        new Pagination(filtered, renderCards, {
+        new Pagination(filtered, (items) => renderCards(items, favoritesList), {
           getPerPage: getCardsPerPage,
         });
       } catch (err) {
@@ -228,9 +258,13 @@ const showRestaurants = async () => {
     clearBtn.addEventListener('click', () => {
       clearFilterForm();
 
-      new Pagination(restaurants, renderCards, {
-        getPerPage: getCardsPerPage,
-      });
+      new Pagination(
+        restaurants,
+        (items) => renderCards(items, favoritesList),
+        {
+          getPerPage: getCardsPerPage,
+        }
+      );
     });
   }
 };
