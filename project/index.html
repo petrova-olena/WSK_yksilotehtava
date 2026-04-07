@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurants</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="scripts/app.js" defer></script>
+    <script type="module" src="scripts/app.js" defer></script>
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -42,45 +42,7 @@
       </section>
 
       <section id="list-container">
-        <div id="restaurant-list">
-          <!--This will be deleted, when implements API-->
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-          <div class="restaurant-card">
-            <h3>UniCafe Kaivopiha</h3>
-            <p>Mannerheimintie 3, Helsinki</p>
-          </div>
-        </div>
+        <div id="restaurant-list"></div>
 
         <div id="pagination">
           <button id="prev-page">← Prev</button>
@@ -92,20 +54,7 @@
 
     <!--Modal window for the restaurants information-->
     <div id="restaurant-modal" class="hidden">
-      <div class="modal-content restaurant-modal">
-        <button class="close-restaurant">x</button>
-
-        <h2 id="restaurant-name">Restaurant Name</h2>
-
-        <p id="restaurant-address"></p>
-        <p id="restaurant-phone"></p>
-        <p id="restaurant-company"></p>
-
-        <div class="restaurant-buttons">
-          <button class="menu-day">Menu for Today</button>
-          <button class="menu-week">Menu for Week</button>
-        </div>
-      </div>
+      <div class="modal-content restaurant-modal"></div>
     </div>
 
     <!--Modal window for the restaurants searching-->
@@ -143,28 +92,7 @@
 
     <!--Modal window for the login/registration-->
     <div id="login-modal" class="hidden">
-      <div class="modal-content login-modal">
-        <button class="close-login">x</button>
-
-        <h2>Login</h2>
-
-        <label for="login-username">Username</label>
-        <input type="text" id="login-username" placeholder="Enter username" />
-
-        <label for="login-password">Password</label>
-        <input
-          type="password"
-          id="login-password"
-          placeholder="Enter password"
-        />
-
-        <button class="login-submit">Login</button>
-
-        <p class="create-account">
-          Don't have an account?
-          <a href="#">Create one</a>
-        </p>
-      </div>
+      <div class="modal-content login-modal"></div>
     </div>
   </body>
 </html>

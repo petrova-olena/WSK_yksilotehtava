@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurants_profile</title>
     <link rel="stylesheet" href="style.css" />
+    <script type="module" src="profile.js" defer></script>
   </head>
   <body>
     <header>
@@ -26,7 +27,12 @@
       <section class="profile-card">
         <div class="profile-left">
           <img id="profile-photo" src="assets/images/avatar.jpg" alt="Avatar" />
-          <button class="upload-photo-btn">Upload foto</button>
+          <input
+            type="file"
+            id="avatar-input"
+            accept="image/*"
+            style="display: none"
+          />
         </div>
 
         <div class="profile-right">
@@ -56,8 +62,28 @@
           </div>
 
           <button class="edit-profile-btn">Edit profile</button>
+          <button class="delete-profile-btn">Delete account</button>
         </div>
       </section>
     </main>
+
+    <div id="edit-modal" class="modal hidden">
+      <div class="modal-content edit-modal">
+        <button class="close-edit">x</button>
+
+        <h2>Edit Profile</h2>
+
+        <label>Email</label>
+        <input id="edit-email" type="email" />
+
+        <label>Username</label>
+        <input id="edit-username" type="text" />
+
+        <label>New Password</label>
+        <input id="edit-password" type="password" />
+
+        <button id="save-profile">Save changes</button>
+      </div>
+    </div>
   </body>
 </html>
