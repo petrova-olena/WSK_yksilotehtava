@@ -8,7 +8,7 @@ import {
   renderWeeklyMenu,
 } from './modal.js';
 import {map} from './map.js';
-import {clearFilterForm, filterRestaurants} from './filter.js';
+import {clearFilterForm, applyFilters} from './filter.js';
 
 const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
 const markers = new Map(); // id → marker
@@ -24,20 +24,22 @@ const getRestaurants = async () => {
 };
 
 // Fetch daily menu
-const getDailyMenu = async (id, lang) => {
+export const getDailyMenu = async (id, lang) => {
   try {
     return await fetchData(apiUrl + `/restaurants/daily/${id}/${lang}`);
   } catch (error) {
     console.error(error);
+    return {};
   }
 };
 
 // Fetch weekly menu
-const getWeeklyMenu = async (id, lang) => {
+export const getWeeklyMenu = async (id, lang) => {
   try {
     return await fetchData(apiUrl + `/restaurants/weekly/${id}/${lang}`);
   } catch (error) {
     console.error(error);
+    return {};
   }
 };
 
@@ -172,13 +174,13 @@ function createMarkers(items) {
 const showRestaurants = async () => {
   restaurants = await getRestaurants();
 
-  // Sort restaurants alphabetically by name
+  // сортировка
   restaurants.sort((a, b) => a.name.localeCompare(b.name));
 
-  // Create markers for all restaurants (only once)
+  // маркеры
   createMarkers(restaurants);
 
-  // Start with showing all restaurants in the cards
+  // стартовый список
   new Pagination(restaurants, renderCards, {
     getPerPage: getCardsPerPage,
   });
@@ -186,40 +188,51 @@ const showRestaurants = async () => {
   const applyBtn = document.querySelector('.apply-btn');
   const clearBtn = document.querySelector('.clear-btn');
   const filterModal = document.getElementById('filter-modal');
+  const loadingModal = document.getElementById('loading-modal');
 
-  applyBtn.addEventListener('click', () => {
-    const filters = {
-      address: document.getElementById('filter-address').value,
-      keyword: document.getElementById('filter-keyword').value,
-      diets: [...document.querySelectorAll('.diet-options input:checked')].map(
-        (cb) => cb.parentElement.textContent.trim().toLowerCase()
-      ),
-      useLocation: document.getElementById('use-location').checked,
-      userLocation: window.userLocation || null,
-    };
+  if (applyBtn) {
+    applyBtn.addEventListener('click', async () => {
+      // закрываем фильтр
+      filterModal.classList.add('hidden');
+      // показываем загрузку
+      loadingModal.classList.remove('hidden');
 
-    const filtered = filterRestaurants(restaurants, filters);
+      try {
+        const filters = {
+          address: document.getElementById('filter-address').value,
+          keyword: document.getElementById('filter-keyword').value,
+          diets: [
+            ...document.querySelectorAll('.diet-options input:checked'),
+          ].map((cb) => cb.value.toLowerCase()),
+          useLocation: document.getElementById('use-location').checked,
+          userLocation: window.userLocation || null,
+        };
 
-    // Only cards, markers NOT touched
-    new Pagination(filtered, renderCards, {
-      getPerPage: getCardsPerPage,
+        const filtered = await applyFilters(restaurants, filters);
+
+        new Pagination(filtered, renderCards, {
+          getPerPage: getCardsPerPage,
+        });
+      } catch (err) {
+        console.error('Filter failed:', err);
+      }
+
+      // скрываем загрузку
+      loadingModal.classList.add('hidden');
+      // очищаем форму
+      clearFilterForm();
     });
+  }
 
-    // Clear filters for next time
-    clearFilterForm();
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      clearFilterForm();
 
-    // Close filter modal
-    filterModal.classList.add('hidden');
-  });
-
-  clearBtn.addEventListener('click', () => {
-    // Clear filters and show all restaurants again
-    clearFilterForm();
-
-    new Pagination(restaurants, renderCards, {
-      getPerPage: getCardsPerPage,
+      new Pagination(restaurants, renderCards, {
+        getPerPage: getCardsPerPage,
+      });
     });
-  });
+  }
 };
 
 export default showRestaurants;

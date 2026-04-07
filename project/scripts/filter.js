@@ -1,4 +1,5 @@
 'use strict';
+import {getDailyMenu, getWeeklyMenu} from './restaurant_cards.js';
 
 export function initFilterModal() {
   const filterBtn = document.querySelector('.search-btn');
@@ -31,7 +32,7 @@ export function getFilters() {
     address: document.getElementById('filter-address').value,
     keyword: document.getElementById('filter-keyword').value,
     diets: [...document.querySelectorAll('.diet-options input:checked')].map(
-      (cb) => cb.parentElement.textContent.trim().toLowerCase()
+      (cb) => cb.value.toLowerCase()
     ),
     useLocation: document.getElementById('use-location').checked,
     userLocation: window.userLocation || null,
@@ -47,7 +48,7 @@ export function clearFilterForm() {
     .forEach((cb) => (cb.checked = false));
 }
 
-export function filterRestaurants(restaurants, filters) {
+function filterRestaurants(restaurants, filters) {
   let results = [...restaurants];
 
   const addr = filters.address.trim().toLowerCase();
@@ -65,16 +66,6 @@ export function filterRestaurants(restaurants, filters) {
       (r) =>
         r.address.toLowerCase().includes(addr) ||
         r.city.toLowerCase().includes(addr)
-    );
-  }
-
-  if (filters.diets.length > 0) {
-    results = results.filter(
-      (r) =>
-        r.diets &&
-        filters.diets.some((d) =>
-          r.diets.map((x) => x.toLowerCase()).includes(d)
-        )
     );
   }
 
@@ -116,4 +107,102 @@ function distance(lat1, lon1, lat2, lon2) {
       Math.sin(dLon / 2);
 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function filterByMenu(restaurants, keyword, diets) {
+  const results = [];
+
+  const key = keyword?.trim().toLowerCase() || '';
+  const dietList = diets || [];
+
+  for (const r of restaurants) {
+    let daily = {};
+    let weekly = {};
+
+    try {
+      daily = (await getDailyMenu(r._id, 'en')) || {};
+    } catch {}
+
+    try {
+      weekly = (await getWeeklyMenu(r._id, 'en')) || {};
+    } catch {}
+
+    const dailyCourses = Array.isArray(daily.courses) ? daily.courses : [];
+
+    const weeklyCourses = Array.isArray(weekly.days)
+      ? weekly.days.flatMap((day) =>
+          Array.isArray(day.courses) ? day.courses : []
+        )
+      : [];
+
+    const allCourses = [...dailyCourses, ...weeklyCourses];
+
+    // Если фильтр НЕ требует меню — ресторан остаётся
+    if (!key && dietList.length === 0) {
+      results.push(r);
+      continue;
+    }
+
+    // Если фильтр требует меню, но меню пустое — пропускаем
+    if (allCourses.length === 0) continue;
+
+    const keywordMatch = key
+      ? allCourses.some(
+          (c) =>
+            c.name?.toLowerCase().includes(key) ||
+            c.price?.toLowerCase().includes(key)
+        )
+      : true;
+
+    const dietMatch = dietList.length
+      ? dietList.every((diet) =>
+          allCourses.some((course) => {
+            const courseDiets = normalizeDiets(course.diets);
+            return courseDiets.includes(diet);
+          })
+        )
+      : true;
+
+    if (keywordMatch && dietMatch) {
+      results.push(r);
+    }
+  }
+
+  return results;
+}
+
+function normalizeDiets(diets) {
+  if (!diets) return [];
+
+  if (Array.isArray(diets)) {
+    return diets
+      .map((d) => (d || '').toString().trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  if (typeof diets === 'string') {
+    return diets
+      .split(',')
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+export async function applyFilters(restaurants, filters) {
+  let filtered = filterRestaurants(restaurants, filters);
+
+  if (filters.keyword || filters.diets.length > 0) {
+    const menuFiltered = await filterByMenu(
+      restaurants,
+      filters.keyword,
+      filters.diets
+    );
+    filtered = filtered.filter((r) =>
+      menuFiltered.some((m) => m._id === r._id)
+    );
+  }
+
+  return filtered;
 }

@@ -77,16 +77,32 @@
 
         <label>Diet</label>
         <div class="diet-options">
-          <label><input type="checkbox" /> Vegetarian</label>
-          <label><input type="checkbox" /> Vegan</label>
-          <label><input type="checkbox" /> Gluten-free</label>
-          <label><input type="checkbox" /> Lactose-free</label>
+          <!-- Plant-based -->
+          <label><input type="checkbox" value="veg" /> Vegetarian</label>
+          <label><input type="checkbox" value="vs" /> Vegan</label>
+
+          <!-- Allergies / intolerances -->
+          <label><input type="checkbox" value="g" /> Gluten-free</label>
+          <label><input type="checkbox" value="l" /> Lactose-free</label>
+          <label><input type="checkbox" value="m" /> Milk-free</label>
+          <label><input type="checkbox" value="ilm" /> No milk</label>
+          <label><input type="checkbox" value="vl" /> Low-lactose</label>
+
+          <!-- Other -->
+          <label><input type="checkbox" value="a" /> Contains allergens</label>
+          <label><input type="checkbox" value="*" /> Special</label>
         </div>
 
         <div class="filter-buttons">
           <button class="apply-btn">Apply</button>
           <button class="clear-btn">Clear</button>
         </div>
+      </div>
+    </div>
+
+    <div id="loading-modal" class="hidden loading-modal">
+      <div class="loading-content">
+        <p>Processing your request...</p>
       </div>
     </div>
 

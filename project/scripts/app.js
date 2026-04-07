@@ -10,10 +10,9 @@ mapInit();
 // Search restaurant modal filter window
 initFilterModal();
 
-// Add restaurant cards to the page
-showRestaurants();
-
 // Login modal filter window
 document.addEventListener('DOMContentLoaded', () => {
   initLoginModal();
+  // Add restaurant cards to the page
+  showRestaurants();
 });

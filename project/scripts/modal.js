@@ -88,6 +88,8 @@ export function renderWeeklyMenu(weeklyMenu) {
       empty.classList.add('diet-none');
       container.appendChild(empty);
       return;
+    } else {
+      console.log(`Courses for ${dayHeader.textContent}:`, day.courses);
     }
 
     // Courses

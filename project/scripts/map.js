@@ -23,6 +23,8 @@ export const mapInit = () => {
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
 
+    window.userLocation = {lat, lng};
+
     userMarker.setLatLng([lat, lng]);
     map.setView([lat, lng], 14);
   });
