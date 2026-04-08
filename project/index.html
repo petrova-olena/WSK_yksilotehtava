@@ -18,7 +18,7 @@
       crossorigin=""
     ></script>
     <script src="scripts/map.js" defer></script>
-    <script type="module" src="scripts/app.js" defer></script>
+    <script type="module" src="scripts/app.js"></script>
   </head>
   <body>
     <header>
@@ -34,11 +34,11 @@
     </header>
 
     <main class="layout">
-      <section id="map-container">
+      <div id="map-container">
         <div id="map"></div>
-      </section>
+      </div>
 
-      <section id="list-container">
+      <div id="list-container">
         <div id="restaurant-list"></div>
 
         <div id="pagination">
@@ -46,7 +46,7 @@
           <span id="page-info"></span>
           <button id="next-page">Next →</button>
         </div>
-      </section>
+      </div>
     </main>
 
     <!--Modal window for the restaurants information-->
