@@ -1,5 +1,4 @@
 'use strict';
-import {mapInit} from './map.js';
 import showRestaurants from './restaurant_cards.js';
 import {initLoginModal} from './login.js';
 import {initFilterModal} from './filter.js';

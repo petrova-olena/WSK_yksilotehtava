@@ -143,19 +143,16 @@ header {
   overflow: hidden;
 }
 
-.restaurant-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .favorite-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   background: none;
   border: none;
-  font-size: 26px;
+  font-size: 24px;
   cursor: pointer;
   color: gold;
-  transition: transform 0.2s ease;
+  z-index: 2;
 }
 
 .favorite-btn:hover {
@@ -174,6 +171,7 @@ header {
 }
 
 .restaurant-card {
+  position: relative;
   background: #fff0dc;
   padding: 1rem;
   margin-bottom: 0.75rem;

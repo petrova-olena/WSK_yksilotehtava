@@ -7,7 +7,6 @@ import {
   renderMenu,
   renderWeeklyMenu,
 } from './modal.js';
-import {map} from './map.js';
 import {clearFilterForm, applyFilters} from './filter.js';
 import {getFavoriteRestaurant, setFavoriteRestaurant} from './favorite.js';
 
@@ -121,19 +120,12 @@ function renderCards(items) {
     rDiv.classList.add('restaurant-card');
     rDiv.dataset.id = restaurant._id;
 
-    const headerRow = document.createElement('div');
-    headerRow.classList.add('restaurant-header-row');
-
-    const rName = document.createElement('h3');
-    rName.textContent = restaurant.name;
-
     const favBtn = document.createElement('button');
     favBtn.classList.add('favorite-btn');
 
     const updateStar = () => {
       favBtn.textContent = restaurant._id === currentFavorite ? '★' : '☆';
     };
-
     updateStar();
 
     favBtn.addEventListener('click', async (e) => {
@@ -145,17 +137,18 @@ function renderCards(items) {
       document
         .querySelectorAll('.favorite-btn')
         .forEach((btn) => (btn.textContent = '☆'));
+
       updateStar();
     });
 
-    headerRow.appendChild(rName);
-    headerRow.appendChild(favBtn);
-    rDiv.appendChild(headerRow);
+    rDiv.appendChild(favBtn);
+
+    const rName = document.createElement('h3');
+    rName.textContent = restaurant.name;
+    rDiv.appendChild(rName);
 
     const rAddress = document.createElement('p');
     rAddress.textContent = `${restaurant.address}, ${restaurant.city}`;
-
-    rDiv.appendChild(rName);
     rDiv.appendChild(rAddress);
 
     // Click on card = open modal
@@ -204,13 +197,13 @@ function createMarkers(items) {
 const showRestaurants = async () => {
   restaurants = await getRestaurants();
 
-  // сортировка
+  // Sort restaurants alphabetically by name
   restaurants.sort((a, b) => a.name.localeCompare(b.name));
 
-  // маркеры
+  // Create markers
   createMarkers(restaurants);
 
-  // стартовый список
+  // Initialize pagination
   new Pagination(restaurants, renderCards, {
     getPerPage: getCardsPerPage,
   });
@@ -222,9 +215,9 @@ const showRestaurants = async () => {
 
   if (applyBtn) {
     applyBtn.addEventListener('click', async () => {
-      // закрываем фильтр
+      // Close filter modal
       filterModal.classList.add('hidden');
-      // показываем загрузку
+      // Show loading
       loadingModal.classList.remove('hidden');
 
       try {
@@ -240,16 +233,16 @@ const showRestaurants = async () => {
 
         const filtered = await applyFilters(restaurants, filters);
 
-        new Pagination(filtered, (items) => renderCards(items, favoritesList), {
+        new Pagination(filtered, (items) => renderCards(items), {
           getPerPage: getCardsPerPage,
         });
       } catch (err) {
         console.error('Filter failed:', err);
       }
 
-      // скрываем загрузку
+      // Hide loading
       loadingModal.classList.add('hidden');
-      // очищаем форму
+      // Clear filter form
       clearFilterForm();
     });
   }
@@ -258,13 +251,9 @@ const showRestaurants = async () => {
     clearBtn.addEventListener('click', () => {
       clearFilterForm();
 
-      new Pagination(
-        restaurants,
-        (items) => renderCards(items, favoritesList),
-        {
-          getPerPage: getCardsPerPage,
-        }
-      );
+      new Pagination(restaurants, (items) => renderCards(items), {
+        getPerPage: getCardsPerPage,
+      });
     });
   }
 };

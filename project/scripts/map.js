@@ -1,8 +1,8 @@
 'use strict';
 
-export const map = L.map('map').setView([60.22, 24.9], 11);
+const map = L.map('map').setView([60.22, 24.9], 11);
 
-export const mapInit = () => {
+const mapInit = () => {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution:
