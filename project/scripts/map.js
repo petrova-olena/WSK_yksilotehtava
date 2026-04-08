@@ -1,7 +1,9 @@
 'use strict';
 
+// Initialize the map
 const map = L.map('map').setView([60.22, 24.9], 11);
 
+// Add OpenStreetMap tiles and user location marker
 const mapInit = () => {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -16,16 +18,24 @@ const mapInit = () => {
     iconAnchor: [12, 41],
   });
 
+  // Add a marker for the user's location
   const userMarker = L.marker(map.getCenter(), {icon: userIcon}).addTo(map);
   userMarker._icon.classList.add('user-marker');
 
-  navigator.geolocation.getCurrentPosition((pos) => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
+  // Try to get the user's location
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
 
-    window.userLocation = {lat, lng};
+      window.userLocation = {lat, lng};
 
-    userMarker.setLatLng([lat, lng]);
-    map.setView([lat, lng], 14);
-  });
+      userMarker.setLatLng([lat, lng]);
+      map.setView([lat, lng], 14);
+    },
+    () => {
+      console.warn('Geolocation denied');
+      window.userLocation = null;
+    }
+  );
 };

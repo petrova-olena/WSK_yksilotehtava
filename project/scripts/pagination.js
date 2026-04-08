@@ -1,5 +1,6 @@
 'use strict';
 
+// Pagination class to handle paginated rendering of items
 export default class Pagination {
   constructor(items, renderFn, options = {}) {
     this.items = items;
@@ -15,11 +16,13 @@ export default class Pagination {
     this.init();
   }
 
+  // Initialize the pagination by attaching events and rendering the first page
   init() {
-    this.update();
     this.attachEvents();
+    this.update();
   }
 
+  // Attach event listeners for pagination controls and window resize
   attachEvents() {
     this.prevBtn.addEventListener('click', () => {
       this.currentPage--;
@@ -42,6 +45,7 @@ export default class Pagination {
     });
   }
 
+  // Update the pagination state and render the current page
   update() {
     this.perPage = this.getPerPage();
     this.totalPages = Math.ceil(this.items.length / this.perPage);

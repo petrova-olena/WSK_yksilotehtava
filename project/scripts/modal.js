@@ -1,11 +1,13 @@
 'use strict';
 
+// Functions to render restaurant details and menus in a modal
 export function renderHeader(restaurant) {
   const h3 = document.createElement('h3');
   h3.textContent = restaurant.name;
   return h3;
 }
 
+// Renders restaurant info: address, phone, company
 export function renderInfo(restaurant) {
   const div = document.createElement('div');
   div.innerHTML = `
@@ -16,6 +18,7 @@ export function renderInfo(restaurant) {
   return div;
 }
 
+// Renders daily menu with courses, prices, and diets
 export function renderMenu(dailyMenu) {
   const div = document.createElement('div');
   div.classList.add('menu-container');
@@ -25,10 +28,12 @@ export function renderMenu(dailyMenu) {
     return div;
   }
 
+  // Loop through courses and create cards for each
   dailyMenu.courses.forEach((course) => {
     const card = document.createElement('div');
     card.className = 'course-card';
 
+    // Handle diets as either string or array
     const diets =
       typeof course.diets === 'string'
         ? course.diets.split(',').map((d) => d.trim())
@@ -54,6 +59,7 @@ export function renderMenu(dailyMenu) {
   return div;
 }
 
+// Renders weekly menu with days, courses, prices, and diets
 export function renderWeeklyMenu(weeklyMenu) {
   const container = document.createElement('div');
   container.classList.add('menu-container');
@@ -68,6 +74,7 @@ export function renderWeeklyMenu(weeklyMenu) {
     return container;
   }
 
+  // Loop through each day and render its courses
   weeklyMenu.days.forEach((day) => {
     // Day header
     const dayHeader = document.createElement('h4');
@@ -88,8 +95,6 @@ export function renderWeeklyMenu(weeklyMenu) {
       empty.classList.add('diet-none');
       container.appendChild(empty);
       return;
-    } else {
-      console.log(`Courses for ${dayHeader.textContent}:`, day.courses);
     }
 
     // Courses

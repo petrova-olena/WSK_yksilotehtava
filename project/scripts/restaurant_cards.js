@@ -10,10 +10,23 @@ import {
 import {clearFilterForm, applyFilters} from './filter.js';
 import {getFavoriteRestaurant, setFavoriteRestaurant} from './favorite.js';
 
+// Global variables
 const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
 const markers = new Map(); // id → marker
 let restaurants = [];
 let currentFavorite = getFavoriteRestaurant();
+
+// Function to initialize modal close behavior
+function initRestaurantModalClose() {
+  const restaurantModal = document.getElementById('restaurant-modal');
+  if (!restaurantModal) return;
+
+  restaurantModal.addEventListener('click', (e) => {
+    if (e.target === restaurantModal) {
+      restaurantModal.classList.add('hidden');
+    }
+  });
+}
 
 // Fetch all restaurants
 export const getRestaurants = async () => {
@@ -113,13 +126,13 @@ function renderCards(items) {
   const container = document.querySelector('#restaurant-list');
   container.innerHTML = '';
 
-  const restaurantModal = document.getElementById('restaurant-modal');
-
+  // Create cards
   items.forEach((restaurant) => {
     const rDiv = document.createElement('div');
     rDiv.classList.add('restaurant-card');
     rDiv.dataset.id = restaurant._id;
 
+    // Favorite button
     const favBtn = document.createElement('button');
     favBtn.classList.add('favorite-btn');
 
@@ -143,6 +156,7 @@ function renderCards(items) {
 
     rDiv.appendChild(favBtn);
 
+    // Restaurant name and address
     const rName = document.createElement('h3');
     rName.textContent = restaurant.name;
     rDiv.appendChild(rName);
@@ -158,12 +172,6 @@ function renderCards(items) {
     });
 
     container.appendChild(rDiv);
-  });
-
-  restaurantModal.addEventListener('click', (e) => {
-    if (e.target === restaurantModal) {
-      restaurantModal.classList.add('hidden');
-    }
   });
 }
 
@@ -200,6 +208,8 @@ const showRestaurants = async () => {
   // Sort restaurants alphabetically by name
   restaurants.sort((a, b) => a.name.localeCompare(b.name));
 
+  initRestaurantModalClose();
+
   // Create markers
   createMarkers(restaurants);
 
@@ -208,11 +218,13 @@ const showRestaurants = async () => {
     getPerPage: getCardsPerPage,
   });
 
+  // Filter button handlers
   const applyBtn = document.querySelector('.apply-btn');
   const clearBtn = document.querySelector('.clear-btn');
   const filterModal = document.getElementById('filter-modal');
   const loadingModal = document.getElementById('loading-modal');
 
+  // Apply filters
   if (applyBtn) {
     applyBtn.addEventListener('click', async () => {
       // Close filter modal
@@ -233,6 +245,7 @@ const showRestaurants = async () => {
 
         const filtered = await applyFilters(restaurants, filters);
 
+        // Update markers
         new Pagination(filtered, (items) => renderCards(items), {
           getPerPage: getCardsPerPage,
         });
@@ -247,6 +260,7 @@ const showRestaurants = async () => {
     });
   }
 
+  // Clear filters
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
       clearFilterForm();

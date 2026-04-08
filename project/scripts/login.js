@@ -2,6 +2,7 @@
 
 const apiUrl = 'https://media2.edu.metropolia.fi/restaurant/api/v1';
 
+// Function to log in a user. Returns {message: 'error'} on failure and {token, data: user} on success.
 async function loginUser(username, password) {
   try {
     const response = await fetch(apiUrl + '/auth/login', {
@@ -10,15 +11,14 @@ async function loginUser(username, password) {
       body: JSON.stringify({username, password}),
     });
 
-    const data = await response.json();
-
-    return data; // { message, token, data }
-  } catch (error) {
-    console.error('Login error:', error);
+    if (!response.ok) return {message: 'Login failed'};
+    return await response.json();
+  } catch {
     return {message: 'Server error'};
   }
 }
 
+// Function to register a new user. Returns {message: 'error'} on failure and {data: user} on success.
 async function registerUser(username, email, password) {
   try {
     const response = await fetch(apiUrl + '/users', {
@@ -27,214 +27,186 @@ async function registerUser(username, email, password) {
       body: JSON.stringify({username, password, email}),
     });
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Registration error:', error);
+    if (!response.ok) return {message: 'Registration failed'};
+    return await response.json();
+  } catch {
     return {message: 'Server error'};
   }
 }
 
+// Main part starts here.
+let modalInitialized = false;
+
+// Initializes the login modal and its event listeners. This function should be called once on page load.
 export function initLoginModal() {
+  if (modalInitialized) return; // prevent double init
+  modalInitialized = true;
+
+  // Get DOM elements
   const loginBtn = document.getElementById('login-btn');
   const loginModal = document.getElementById('login-modal');
   const loginContent = document.querySelector('.login-modal');
 
   if (!loginBtn || !loginModal || !loginContent) return;
 
-  loginBtn.addEventListener('click', () => {
-    openLoginModal();
+  // Open modal
+  loginBtn.addEventListener('click', () => openLoginView());
+
+  // Backdrop close (added ONCE)
+  loginModal.addEventListener('click', (e) => {
+    if (e.target === loginModal) loginModal.classList.add('hidden');
   });
 
-  function openLoginModal() {
+  // Renders the login form inside the modal. Also sets up event listeners
+  // for switching to registration and submitting the login form.
+  function openLoginView() {
     loginContent.innerHTML = '';
 
-    // Close button
-    const closeBtn = document.createElement('button');
-    closeBtn.classList.add('close-login');
-    closeBtn.textContent = 'x';
-    closeBtn.addEventListener('click', () => {
-      loginModal.classList.add('hidden');
-    });
-    loginContent.appendChild(closeBtn);
+    // Create form elements
+    addCloseButton();
+    addTitle('Login');
 
-    // Title
-    const title = document.createElement('h2');
-    title.textContent = 'Login';
-    loginContent.appendChild(title);
+    // Create username and password fields
+    const username = addInput('Username', 'login-username', 'text');
+    const password = addInput('Password', 'login-password', 'password');
 
-    // Username
-    const labelUser = document.createElement('label');
-    labelUser.setAttribute('for', 'login-username');
-    labelUser.textContent = 'Username';
-    loginContent.appendChild(labelUser);
+    // Create submit button
+    const submitBtn = addSubmitButton('Login');
 
-    const inputUser = document.createElement('input');
-    inputUser.type = 'text';
-    inputUser.id = 'login-username';
-    inputUser.placeholder = 'Enter username';
-    loginContent.appendChild(inputUser);
+    // Create switcher to registration view
+    const switcher = document.createElement('p');
+    switcher.classList.add('create-account');
+    switcher.innerHTML = `Don't have an account? <a href="#" class="open-register">Create one</a>`;
+    loginContent.appendChild(switcher);
 
-    // Password
-    const labelPass = document.createElement('label');
-    labelPass.setAttribute('for', 'login-password');
-    labelPass.textContent = 'Password';
-    loginContent.appendChild(labelPass);
-
-    const inputPass = document.createElement('input');
-    inputPass.type = 'password';
-    inputPass.id = 'login-password';
-    inputPass.placeholder = 'Enter password';
-    loginContent.appendChild(inputPass);
-
-    // Submit button
-    const submitBtn = document.createElement('button');
-    submitBtn.classList.add('login-submit');
-    submitBtn.textContent = 'Login';
-    loginContent.appendChild(submitBtn);
-
-    // Create account link
-    const createAcc = document.createElement('p');
-    createAcc.classList.add('create-account');
-    createAcc.innerHTML = `Don't have an account? <a href="#" class="open-register">Create one</a>`;
-    loginContent.appendChild(createAcc);
-
-    createAcc.querySelector('.open-register').addEventListener('click', (e) => {
+    switcher.querySelector('.open-register').addEventListener('click', (e) => {
       e.preventDefault();
       openRegisterView();
     });
 
-    // Login handler
+    // Handle login submission
     submitBtn.addEventListener('click', async () => {
-      const username = inputUser.value.trim();
-      const password = inputPass.value.trim();
+      const user = username.value.trim();
+      const pass = password.value.trim();
 
-      if (!username || !password) {
+      if (!user || !pass) {
         alert('Please fill in both fields');
         return;
       }
 
-      const result = await loginUser(username, password);
+      // Disable button to prevent multiple clicks
+      submitBtn.disabled = true;
+      const result = await loginUser(user, pass);
+      submitBtn.disabled = false;
 
-      console.log('LOGIN RESULT:', result);
-      console.log('TOKEN:', result.token);
-      console.log('USER DATA:', result.data);
-
+      // On successful login, store token and user data, then close modal. On failure, show error message.
       if (result.token) {
-        // Save token
         localStorage.setItem('token', result.token);
         localStorage.setItem('user', JSON.stringify(result.data));
 
         alert('Login successful');
-
         loginModal.classList.add('hidden');
       } else {
         alert(result.message || 'Login failed');
       }
     });
 
-    // Show modal
     loginModal.classList.remove('hidden');
   }
 
-  // Close on backdrop click
-  if (loginModal) {
-    loginModal.addEventListener('click', (e) => {
-      if (e.target === loginModal) {
-        loginModal.classList.add('hidden');
-      }
-    });
-  }
-
+  // Renders the registration form inside the modal. Also sets up event listeners
+  // for switching to login and submitting the registration form.
   function openRegisterView() {
     loginContent.innerHTML = '';
 
-    // Close button
-    const closeBtn = document.createElement('button');
-    closeBtn.classList.add('close-login');
-    closeBtn.textContent = 'x';
-    closeBtn.addEventListener('click', () =>
-      loginModal.classList.add('hidden')
-    );
-    loginContent.appendChild(closeBtn);
+    // Create form elements
+    addCloseButton();
+    addTitle('Create Account');
 
-    // Title
-    const title = document.createElement('h2');
-    title.textContent = 'Create Account';
-    loginContent.appendChild(title);
+    // Create username, email, and password fields
+    const username = addInput('Username', 'register-username', 'text');
+    const email = addInput('Email', 'register-email', 'email');
+    const password = addInput('Password', 'register-password', 'password');
 
-    // Username
-    const labelUser = document.createElement('label');
-    labelUser.textContent = 'Username';
-    loginContent.appendChild(labelUser);
+    // Create submit button
+    const submitBtn = addSubmitButton('Register');
 
-    const inputUser = document.createElement('input');
-    inputUser.type = 'text';
-    inputUser.placeholder = 'Choose username';
-    inputUser.id = 'register-username';
-    loginContent.appendChild(inputUser);
+    // Create switcher to login view
+    const switcher = document.createElement('p');
+    switcher.classList.add('create-account');
+    switcher.innerHTML = `Already have an account? <a href="#" class="open-login">Login</a>`;
+    loginContent.appendChild(switcher);
 
-    // Email
-    const labelEmail = document.createElement('label');
-    labelEmail.textContent = 'Email';
-    loginContent.appendChild(labelEmail);
+    switcher.querySelector('.open-login').addEventListener('click', (e) => {
+      e.preventDefault();
+      openLoginView();
+    });
 
-    const inputEmail = document.createElement('input');
-    inputEmail.type = 'email';
-    inputEmail.placeholder = 'Enter email';
-    inputEmail.id = 'register-email';
-    loginContent.appendChild(inputEmail);
-
-    // Password
-    const labelPass = document.createElement('label');
-    labelPass.textContent = 'Password';
-    loginContent.appendChild(labelPass);
-
-    const inputPass = document.createElement('input');
-    inputPass.type = 'password';
-    inputPass.placeholder = 'Choose password';
-    inputPass.id = 'register-password';
-    loginContent.appendChild(inputPass);
-
-    // Submit
-    const submitBtn = document.createElement('button');
-    submitBtn.classList.add('login-submit');
-    submitBtn.textContent = 'Register';
-    loginContent.appendChild(submitBtn);
-
-    // Switch to login
-    const backToLogin = document.createElement('p');
-    backToLogin.classList.add('create-account');
-    backToLogin.innerHTML = `Already have an account? <a href="#" class="open-login">Login</a>`;
-    loginContent.appendChild(backToLogin);
-
-    // Register handler
+    // Handle registration submission
     submitBtn.addEventListener('click', async () => {
-      const username = inputUser.value.trim();
-      const email = inputEmail.value.trim();
-      const password = inputPass.value.trim();
+      const user = username.value.trim();
+      const mail = email.value.trim();
+      const pass = password.value.trim();
 
-      if (!username || !email || !password) {
+      if (!user || !mail || !pass) {
         alert('Please fill in all fields');
         return;
       }
 
-      const result = await registerUser(username, email, password);
+      // Disable button to prevent multiple clicks
+      submitBtn.disabled = true;
+      const result = await registerUser(user, mail, pass);
+      submitBtn.disabled = false;
 
       if (result.data) {
-        alert('Registration successful! Please log in to your account.');
-        openLoginModal();
+        alert('Registration successful! Please log in.');
+        openLoginView();
       } else {
         alert(result.message || 'Registration failed');
       }
     });
 
-    // Switch back to login
-    backToLogin.querySelector('.open-login').addEventListener('click', (e) => {
-      e.preventDefault();
-      openLoginModal();
-    });
-
     loginModal.classList.remove('hidden');
+  }
+
+  // Helper function to create a close button and append it to the login content.
+  // The button will close the modal when clicked.
+  function addCloseButton() {
+    const btn = document.createElement('button');
+    btn.classList.add('close-login');
+    btn.textContent = 'x';
+    btn.addEventListener('click', () => loginModal.classList.add('hidden'));
+    loginContent.appendChild(btn);
+  }
+
+  // Helper function to create a title element and append it to the login content.
+  function addTitle(text) {
+    const title = document.createElement('h2');
+    title.textContent = text;
+    loginContent.appendChild(title);
+  }
+
+  // Helper function to create a labeled input field and append it to the login content.
+  function addInput(labelText, id, type) {
+    const label = document.createElement('label');
+    label.setAttribute('for', id);
+    label.textContent = labelText;
+    loginContent.appendChild(label);
+
+    const input = document.createElement('input');
+    input.type = type;
+    input.id = id;
+    loginContent.appendChild(input);
+
+    return input;
+  }
+
+  // Helper function to create a submit button and append it to the login content.
+  function addSubmitButton(text) {
+    const btn = document.createElement('button');
+    btn.classList.add('login-submit');
+    btn.textContent = text;
+    loginContent.appendChild(btn);
+    return btn;
   }
 }

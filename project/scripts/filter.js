@@ -1,23 +1,27 @@
 'use strict';
 import {getDailyMenu, getWeeklyMenu} from './restaurant_cards.js';
 
+// Handles filter modal UI and logic
 export function initFilterModal() {
   const filterBtn = document.querySelector('.search-btn');
   const filterModal = document.getElementById('filter-modal');
   const closeFilter = document.querySelector('.close-modal');
 
+  // Open modal
   if (filterBtn) {
     filterBtn.addEventListener('click', () => {
       filterModal.classList.remove('hidden');
     });
   }
 
+  // Close modal on close button
   if (closeFilter) {
     closeFilter.addEventListener('click', () => {
       filterModal.classList.add('hidden');
     });
   }
 
+  // Close modal on outside click
   if (filterModal) {
     filterModal.addEventListener('click', (e) => {
       if (e.target === filterModal) {
@@ -27,6 +31,7 @@ export function initFilterModal() {
   }
 }
 
+// Get current filter values from the form
 export function getFilters() {
   return {
     address: document.getElementById('filter-address').value,
@@ -34,11 +39,13 @@ export function getFilters() {
     diets: [...document.querySelectorAll('.diet-options input:checked')].map(
       (cb) => cb.value.toLowerCase()
     ),
-    useLocation: document.getElementById('use-location').checked,
+    useLocation:
+      document.getElementById('use-location').checked && window.userLocation,
     userLocation: window.userLocation || null,
   };
 }
 
+// Clear all filter inputs
 export function clearFilterForm() {
   document.getElementById('filter-address').value = '';
   document.getElementById('filter-keyword').value = '';
@@ -48,11 +55,14 @@ export function clearFilterForm() {
     .forEach((cb) => (cb.checked = false));
 }
 
+// Apply basic filters (address, location sorting) to the restaurant list
 function filterRestaurants(restaurants, filters) {
   let results = [...restaurants];
 
+  // Normalize address filter for case-insensitive matching
   const addr = filters.address.trim().toLowerCase();
 
+  // Address / name / city filter (case-insensitive, partial match)
   if (addr) {
     results = results.filter(
       (r) =>
@@ -62,9 +72,11 @@ function filterRestaurants(restaurants, filters) {
     );
   }
 
+  // Location sorting (but NOT exclusive — other filters still apply)
   if (filters.useLocation && filters.userLocation) {
     const {lat, lng} = filters.userLocation;
 
+    // Sort by distance from user location
     results.sort((a, b) => {
       const distA = distance(
         lat,
@@ -80,13 +92,14 @@ function filterRestaurants(restaurants, filters) {
       );
       return distA - distB;
     });
-
-    return results;
+  } else {
+    // Default alphabetical sorting
+    results.sort((a, b) => a.name.localeCompare(b.name));
   }
-
-  return results.sort((a, b) => a.name.localeCompare(b.name));
+  return results;
 }
 
+// Haversine formula to calculate distance between two lat/lng points in km
 function distance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -102,12 +115,16 @@ function distance(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// Filter restaurants by menu keyword and diets
 async function filterByMenu(restaurants, keyword, diets) {
   const results = [];
 
+  // Normalize keyword and diets for consistent matching
   const key = keyword?.trim().toLowerCase() || '';
+  // Ensure diets is an array of lowercase strings
   const dietList = diets || [];
 
+  // For each restaurant, fetch daily and weekly menus, combine courses, and apply filters
   for (const r of restaurants) {
     let daily = {};
     let weekly = {};
@@ -130,26 +147,28 @@ async function filterByMenu(restaurants, keyword, diets) {
 
     const allCourses = [...dailyCourses, ...weeklyCourses];
 
-    // Если фильтр НЕ требует меню — ресторан остаётся
+    // If no keyword/diets → restaurant stays, even if menu is empty
     if (!key && dietList.length === 0) {
       results.push(r);
       continue;
     }
 
-    // Если фильтр требует меню, но меню пустое — пропускаем
+    // If menu empty → skip (unless no filters, handled above)
     if (allCourses.length === 0) continue;
 
+    // Keyword match (name, desc, price) - case-insensitive, partial
     const keywordMatch = key
       ? allCourses.some((course) => {
           const name = course.name?.toLowerCase() || '';
           const desc = course.description?.toLowerCase() || '';
-          const price = course.price?.toLowerCase() || '';
+          const price = (course.price + '').toLowerCase();
           return (
             name.includes(key) || desc.includes(key) || price.includes(key)
           );
         })
       : true;
 
+    // Strict diet match (all selected diets must be in at least one course)
     const dietMatch = dietList.length
       ? dietList.every((diet) =>
           allCourses.some((course) => {
@@ -167,6 +186,7 @@ async function filterByMenu(restaurants, keyword, diets) {
   return results;
 }
 
+// Normalize diets field to an array of lowercase strings for consistent matching
 function normalizeDiets(diets) {
   if (!diets) return [];
 
@@ -186,15 +206,20 @@ function normalizeDiets(diets) {
   return [];
 }
 
+// Main function to apply all filters to the restaurant list
 export async function applyFilters(restaurants, filters) {
+  // Basic filters (address, location sorting)
   let filtered = filterRestaurants(restaurants, filters);
 
+  // Menu filters (keyword + diets)
   if (filters.keyword || filters.diets.length > 0) {
     const menuFiltered = await filterByMenu(
       restaurants,
       filters.keyword,
       filters.diets
     );
+
+    // Intersection
     filtered = filtered.filter((r) =>
       menuFiltered.some((m) => m._id === r._id)
     );
